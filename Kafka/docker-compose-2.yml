@@ -1,0 +1,100 @@
+version: '3.5'
+services:
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.3.3
+    container_name: ${APP_NAME}_zookeeper
+    hostname: zookeeper${ZOOKEEPER_SERVER_ID}
+    restart: always
+    environment:
+      ZOOKEEPER_SERVER_ID: ${ZOOKEEPER_SERVER_ID}
+      ZOOKEEPER_SERVERS: ${ZOOKEEPER_SERVERS}
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_AUTOPURGE_SNAP_RETAIN_COUNT: 3
+      ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: 24
+      # ZOOKEEPER_SNAP_COUNT: 100000
+
+      KAFKA_OPTS: -Djava.security.auth.login.config=/etc/kafka/secrets/zookeeper_jaas.conf
+    volumes:
+      - ./zookeeper/logs:/var/lib/zookeeper/log
+      - ./zookeeper/data:/var/lib/zookeeper/data
+      - ./zookeeper/secrets:/etc/kafka/secrets
+    extra_hosts:
+      zookeeper1: ${SERVER1_IP}
+      zookeeper2: ${SERVER2_IP}
+    logging:
+      options:
+        max-size: "1m"
+        max-file: "10"
+    network_mode: "host"
+
+  kafka:
+    image: confluentinc/cp-kafka:5.3.3
+    container_name: ${APP_NAME}_kafka
+    hostname: kafka${KAFKA_BROKER_ID}
+    restart: always
+    environment:
+      KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
+      KAFKA_ZOOKEEPER_CONNECT: ${KAFKA_ZOOKEEPER_CONNECT}
+
+      KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://kafka${KAFKA_BROKER_ID}:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: SASL_PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SASL_PLAINTEXT:SASL_PLAINTEXT
+
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+      
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.auth.SimpleAclAuthorizer
+      KAFKA_SUPER_USERS: User:admin
+      KAFKA_OPTS: -Djava.security.auth.login.config=/etc/kafka/secrets/kafka_jaas.conf
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+    volumes:
+      - ./kafka/data:/var/lib/kafka/data
+      - ./kafka/secrets:/etc/kafka/secrets
+    depends_on:
+      - zookeeper
+    extra_hosts:
+      kafka1: ${SERVER1_IP}
+      kafka2: ${SERVER2_IP}
+      zookeeper1: ${SERVER1_IP}
+      zookeeper2: ${SERVER2_IP}
+    logging:
+      options:
+        max-size: "1m"
+        max-file: "10"
+    network_mode: "host"
+
+  kafka-manager:
+    image: sheepkiller/kafka-manager
+    container_name: ${APP_NAME}_kafka-manager
+    hostname: kafka-manager
+    restart: always
+    environment:
+      ZK_HOSTS: ${ZK_HOSTS}
+      APPLICATION_SECRET: letmein
+      KM_USERNAME: admin
+      KM_PASSWORD: admin
+      CONSUMER_PROPERTIES_FILE: /kafka-manager/conf/consumer_security.properties
+      KM_ARGS: -Djava.security.auth.login.config=/kafka-manager/secrets/kafka_jaas.conf
+    ports:
+      - 9000:9000
+    volumes:
+      - ./kafka-manager/conf:/kafka-manager/conf
+      - ./kafka/secrets:/kafka-manager/secrets
+    depends_on:
+      - zookeeper
+      - kafka
+    extra_hosts:
+      zookeeper1: ${SERVER1_IP}
+      zookeeper2: ${SERVER2_IP}
+    logging:
+      driver: none
+      options:
+        max-size: "1m"
+        max-file: "10"

@@ -1,0 +1,201 @@
+CustomerID,Gender,Age
+1,  Male,19
+2,  Male,21
+3,Female,20
+4,Female,23
+5,Female,31
+6,Female,22
+7,Female,35
+8,Female,23
+9,  Male,64
+10,Female,30
+11,  Male,67
+12,Female,35
+13,Female,58
+14,Female,24
+15,  Male,37
+16,  Male,22
+17,Female,35
+18,  Male,20
+19,  Male,52
+20,Female,35
+21,  Male,35
+22,  Male,25
+23,Female,46
+24,  Male,31
+25,Female,54
+26,  Male,29
+27,Female,45
+28,  Male,35
+29,Female,40
+30,Female,23
+31,  Male,60
+32,Female,21
+33,  Male,53
+34,  Male,18
+35,Female,49
+36,Female,21
+37,Female,42
+38,Female,30
+39,Female,36
+40,Female,20
+41,Female,65
+42,  Male,24
+43,  Male,48
+44,Female,31
+45,Female,49
+46,Female,24
+47,Female,50
+48,Female,27
+49,Female,29
+50,Female,31
+51,Female,49
+52,  Male,33
+53,Female,31
+54,  Male,59
+55,Female,50
+56,  Male,47
+57,Female,51
+58,  Male,69
+59,Female,27
+60,  Male,53
+61,  Male,70
+62,  Male,19
+63,Female,67
+64,Female,54
+65,  Male,63
+66,  Male,18
+67,Female,43
+68,Female,68
+69,  Male,19
+70,Female,32
+71,  Male,70
+72,Female,47
+73,Female,60
+74,Female,60
+75,  Male,59
+76,  Male,26
+77,Female,45
+78,  Male,40
+79,Female,23
+80,Female,49
+81,  Male,57
+82,  Male,38
+83,  Male,67
+84,Female,46
+85,Female,21
+86,  Male,48
+87,Female,55
+88,Female,22
+89,Female,34
+90,Female,50
+91,Female,68
+92,  Male,18
+93,  Male,48
+94,Female,40
+95,Female,32
+96,  Male,24
+97,Female,47
+98,Female,27
+99,  Male,48
+100,  Male,20
+101,Female,23
+102,Female,49
+103,  Male,67
+104,  Male,26
+105,  Male,49
+106,Female,21
+107,Female,66
+108,  Male,54
+109,  Male,68
+110,  Male,66
+111,  Male,65
+112,Female,19
+113,Female,38
+114,  Male,19
+115,Female,18
+116,Female,19
+117,Female,63
+118,Female,49
+119,Female,51
+120,Female,50
+121,  Male,27
+122,Female,38
+123,Female,40
+124,  Male,39
+125,Female,23
+126,Female,31
+127,  Male,43
+128,  Male,40
+129,  Male,59
+130,  Male,38
+131,  Male,47
+132,  Male,39
+133,Female,25
+134,Female,31
+135,  Male,20
+136,Female,29
+137,Female,44
+138,  Male,32
+139,  Male,19
+140,Female,35
+141,Female,57
+142,  Male,32
+143,Female,28
+144,Female,32
+145,  Male,25
+146,  Male,28
+147,  Male,48
+148,Female,32
+149,Female,34
+150,  Male,34
+151,  Male,43
+152,  Male,39
+153,Female,44
+154,Female,38
+155,Female,47
+156,Female,27
+157,  Male,37
+158,Female,30
+159,  Male,34
+160,Female,30
+161,Female,56
+162,Female,29
+163,  Male,19
+164,Female,31
+165,  Male,50
+166,Female,36
+167,  Male,42
+168,Female,33
+169,Female,36
+170,  Male,32
+171,  Male,40
+172,  Male,28
+173,  Male,36
+174,  Male,36
+175,Female,52
+176,Female,30
+177,  Male,58
+178,  Male,27
+179,  Male,59
+180,  Male,35
+181,Female,37
+182,Female,32
+183,  Male,46
+184,Female,29
+185,Female,41
+186,  Male,30
+187,Female,54
+188,  Male,28
+189,Female,41
+190,Female,36
+191,Female,34
+192,Female,32
+193,  Male,33
+194,Female,38
+195,Female,47
+196,Female,35
+197,Female,45
+198,  Male,32
+199,  Male,32
+200,  Male,30

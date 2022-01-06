@@ -1,0 +1,132 @@
+version: "3.9"
+
+
+## Source : https://github.com/mvillarrealb/docker-spark-cluster
+
+#################################
+### set local ip in etc/hosts ###
+#################################
+
+services:
+  spark-master:
+    build:
+      context: ./build/spark
+      dockerfile: Dockerfile
+    image: spark:3.2.0
+    container_name: spark-master
+    hostname: spark-master
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+       - ./data/apps:/opt/spark-apps
+       - ./data/data:/opt/spark-data
+    environment:
+      - SPARK_LOCAL_IP=spark-master
+      - SPARK_WORKLOAD=master
+      - SPARK_LOCAL_HOSTNAME=spark-master
+    networks:
+        - services
+
+  spark-worker1:
+    build:
+      context: ./build/spark
+      dockerfile: Dockerfile
+    image: spark:3.2.0
+
+    container_name: spark-worker1
+    hostname: spark-worker1
+    ports:
+      - "8081:8080"
+      - "7000:7000"
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_DRIVER_MEMORY=1G
+      - SPARK_EXECUTOR_MEMORY=1G
+      - SPARK_WORKLOAD=worker
+      - SPARK_LOCAL_IP=spark-worker1
+      - SPARK_LOCAL_HOSTNAME=spark-worker1
+    volumes:
+       - ./data/apps:/opt/spark-apps
+       - ./data/data:/opt/spark-data
+    networks:
+       - services
+
+  spark-worker2:
+    build:
+      context: ./build/spark
+      dockerfile: Dockerfile
+    image: spark:3.2.0
+
+    container_name: spark-worker2
+    hostname: spark-worker2
+    ports:
+      - "8082:8080"
+      - "7001:7000"
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_DRIVER_MEMORY=1G
+      - SPARK_EXECUTOR_MEMORY=1G
+      - SPARK_WORKLOAD=worker
+      - SPARK_LOCAL_IP=spark-worker2
+      - SPARK_LOCAL_HOSTNAME=spark-worker2
+    volumes:
+        - ./data/apps:/opt/spark-apps
+        - ./data/data:/opt/spark-data
+    networks:
+        - services
+
+  pyspark:
+    build:
+      context: ./build/pyspark
+      dockerfile: Dockerfile
+    image: pyspark:3.2.0
+
+    container_name: pyspark
+    hostname: pyspark
+    volumes:
+      - ./data/notebooks:/opt/spark-notebooks
+      - ./data/apps:/opt/spark-apps
+      - ./data/data:/opt/spark-data
+    ports:
+      - 8888:8888
+      - 4040-4042:4040-4042
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_LOCAL_IP=pyspark
+      - SPARK_WORKLOAD=submit
+      - SPARK_LOCAL_HOSTNAME=pyspark
+    depends_on:
+        - spark-master  
+    networks:
+        - services
+
+  postgres-server:
+    container_name: ${CONTAINER_NAME:-postgres-server}
+    hostname: ${CONTAINER_NAME:-postgres-server}
+    image: postgres:${PG_VERSION:-13-alpine}
+    volumes:
+      - ./${DATA_FOLDER:-./data/meta_db}:/var/lib/postgresql/data
+      - ./data/postgres:/data
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASS:-123456}
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_DB=${DB_NAME:-mta_data}
+    networks:
+      - services
+    ports:
+      - ${PORT:-5432}:5432
+  
+networks: 
+  services:
+    name: ${APP_NAME}_network
+volumes:
+  dfs_data: {}

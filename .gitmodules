@@ -1,0 +1,6 @@
+[submodule "Airflow/dags"]
+	path = Airflow/dags
+	url = http://git.sabaolgoo.ir/dataeng/airflow-dags
+[submodule "Airflow/build"]
+	path = Airflow/build
+	url = http://git.sabaolgoo.ir/dataeng/airflow-worker

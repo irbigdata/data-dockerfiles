@@ -1,0 +1,67 @@
+version: '2'
+
+services:
+  minio:
+    image: minio/minio:latest
+    command: server /data_lake
+    volumes:
+      - ./data:/data_lake
+    ports:
+      - 9000:9000
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-admin123}
+#      MINIO_PROMETHEUS_AUTH_TYPE: public
+    networks:
+      - services
+
+  console:
+    image: minio/console:latest
+    command: server
+    env_file: 
+      - .env.local
+    depends_on:
+      - minio
+    environment:
+      CONSOLE_MINIO_SERVER: http://minio:9000
+      CONSOLE_PROMETHEUS_URL: http://prometheus:9090
+    
+    ports:
+      - 8080:9090
+    networks:
+      - services
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus:/etc/prometheus:ro
+    ports:
+      - 9090:9090
+    networks:
+      - services
+
+  mc:
+    image: minio/mc
+    volumes:
+      - ./.mc:/root/.mc
+      - ./policy:/policy
+    depends_on:
+      - minio
+  # entrypoint: >
+  #   /bin/sh -c "
+  #   /usr/bin/mc config host rm local;
+  #   /usr/bin/mc config host add --quiet --api s3v4 local http://myminio:9000 minio minio123;
+  #   /usr/bin/mc rb --force local/somebucketname1/;
+  #   /usr/bin/mc mb --quiet local/somebucketname1/;
+  #   /usr/bin/mc policy set public local/somebucketname1;
+  #   "
+
+    networks:
+      - services
+
+# volumes:
+#   data:
+
+networks: 
+  services:
+    name: ${APP_NAME}_network

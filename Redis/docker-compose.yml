@@ -1,0 +1,31 @@
+version: '3.5'
+services:
+  redis:
+    image: redis:alpine
+    container_name: redis
+    command: redis-server --requirepass odiF2t11
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -U postgres"]
+    #   interval: 30s
+    #   timeout: 30s
+    #   retries: 3
+    # logging:
+    #   driver: syslog
+    #   options:
+    #     tag: "{{.DaemonName}}(image={{.ImageName}};name={{.Name}};id={{.ID}})"
+    networks:
+      - services
+    restart: on-failure
+    volumes:
+       # - ${PWD}/postgres/data:/var/lib/postgresql/data
+      - $PWD/data:/var/lib/redis
+      # - $PWD/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+
+    environment:
+      - REDIS_REPLICATION_MODE=master   
+
+networks: 
+  services:
+    name: ${APP_NAME}_network

@@ -1,0 +1,41 @@
+version: '3.4'
+services:
+  postgres:
+    container_name: ${CONTAINER_NAME:-postgres}
+    hostname: ${CONTAINER_NAME:-postgres}
+    image: postgres:${PG_VERSION:-14-alpine}
+    volumes:
+      - ./${DATA_FOLDER:-db_data}:/var/lib/postgresql/data
+      # - ./dump:/data
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASS:-postgres123}
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_DB=${DB_NAME:-testdb}
+    networks:
+      - services
+    ports:
+      - ${PORT:-5432}:5432
+
+    restart: always
+volumes:
+  metadata_data: {}
+
+  # pgadmin:
+  #   container_name: pgadmin4
+  #   hostname: pgadmin4
+  #   image: dpage/pgadmin4
+  #   restart: always
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
+  #     PGADMIN_DEFAULT_PASSWORD: saba123
+  #   volumes:
+  #     - ./pgadmin_erd:/erds
+  #   ports:
+  #     - "5050:80"
+  #   networks:
+  #     - services 
+  #   restart:always 
+  
+networks: 
+  services:
+    name: ${APP_NAME:-pg_test}_network

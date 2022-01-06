@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  ch_server:
+    image: yandex/clickhouse-server
+    volumes:
+      - ./db:/var/lib/clickhouse
+      # - "./configs/clickhouse/config.d/logs.xml:/etc/clickhouse-server/config.d/logs.xml"
+      # - "./configs/clickhouse/config.d/ports.xml:/etc/clickhouse-server/config.d/ports.xml"
+      # - "./configs/clickhouse/config.d/ssl.xml:/etc/clickhouse-server/config.d/ssl.xml"
+      # - "./configs/clickhouse/config.d/storage.xml:/etc/clickhouse-server/config.d/storage.xml"
+      # - "./configs/clickhouse/config.d/remote.xml:/etc/clickhouse-server/config.d/remote.xml"
+      # - "./configs/clickhouse/config.d/zookeeper.xml:/etc/clickhouse-server/config.d/zookeeper.xml"
+      # - "./configs/clickhouse/users.d/:/etc/clickhouse-server/users.d"
+      # - "./configs/clickhouse/ssl:/etc/clickhouse-server/ssl"
+      # - "./configs/clickhouse/config.xml:/etc/clickhouse-server/config.xml"
+      # - "./configs/clickhouse/users.xml:/etc/clickhouse-server/users.xml"
+
+    ports:
+      - 9000:9000
+      - 8123:8123
+      - 9009:9009
+
+    entrypoint: bash -c "clickhouse server --config-file=/etc/clickhouse-server/config.xml --log-file=/var/log/clickhouse-server/clickhouse-server.log --errorlog-file=/var/log/clickhouse-server/clickhouse-server.err.log"
+    healthcheck:
+      test: clickhouse client --query='select 1'
+      interval: 60s
+      timeout: 10s
+      retries: 10
+      # start_period: 300s
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - label:disable
+  
+    # networks:
+    #     - ch_ntw
+
+  ch_client:
+    image: yandex/clickhouse-client
+    entrypoint:
+      - /bin/sleep
+    command:
+      - infinity
+    # networks:
+    #     - ch_ntw
+
+# networks:
+#   ch_ntw:
+#     driver: bridge
+#     ipam:
+#       config:
+#         - subnet: 10.222.1.0/24

@@ -1,0 +1,27 @@
+input {
+
+	file {
+        path => "/data/staging/*.json"
+        start_position =>"beginning"
+	    codec => "json_lines"
+	    sincedb_path => "/dev/null"
+  	}
+}
+
+## Add your filters / logstash plugins configuration here
+
+output {
+
+#	elasticsearch {
+#		hosts => "elasticsearch:9200"
+#		user => "elastic"
+#		password => "changeme"
+#		ecs_compatibility => disabled
+#		index =>  "tweets"
+#	}
+
+	stdout { codec => rubydebug }
+}
+
+
+

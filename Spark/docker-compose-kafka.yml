@@ -1,0 +1,226 @@
+version: "3.3"
+
+
+## Source : https://github.com/mvillarrealb/docker-spark-cluster
+
+#################################
+### set local ip in etc/hosts ###
+#################################
+
+services:
+  spark-master:
+    image: spark:3.2.0
+    build: ./build/spark
+    container_name: spark-master
+    hostname: spark-master
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+       - ./data/apps:/opt/spark-apps
+       - ./data/data:/opt/spark-data
+    environment:
+      - SPARK_LOCAL_IP=spark-master
+      - SPARK_WORKLOAD=master
+      - SPARK_LOCAL_HOSTNAME=spark-master
+    networks:
+        - services
+
+  spark-worker1:
+    image: spark:3.2.0
+    build: ./build/spark
+    container_name: spark-worker1
+    hostname: spark-worker1
+    ports:
+      - "8081:8080"
+      - "7000:7000"
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_DRIVER_MEMORY=1G
+      - SPARK_EXECUTOR_MEMORY=1G
+      - SPARK_WORKLOAD=worker
+      - SPARK_LOCAL_IP=spark-worker1
+      - SPARK_LOCAL_HOSTNAME=spark-worker1
+    volumes:
+       - ./data/apps:/opt/spark-apps
+       - ./data/data:/opt/spark-data
+    networks:
+       - services
+
+  spark-worker2:
+    image: spark:3.2.0
+    build: ./build/spark
+    container_name: spark-worker2
+    hostname: spark-worker2
+    ports:
+      - "8082:8080"
+      - "7001:7000"
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_DRIVER_MEMORY=1G
+      - SPARK_EXECUTOR_MEMORY=1G
+      - SPARK_WORKLOAD=worker
+      - SPARK_LOCAL_IP=spark-worker2
+      - SPARK_LOCAL_HOSTNAME=spark-worker2
+    volumes:
+        - ./data/apps:/opt/spark-apps
+        - ./data/data:/opt/spark-data
+    networks:
+        - services
+
+  pyspark:
+    image: pyspark:3.2.0
+    build: ./build/pyspark
+    container_name: pyspark
+    hostname: pyspark
+    volumes:
+      - ./data/notebooks:/opt/spark-notebooks
+      - ./data/apps:/opt/spark-apps
+      - ./data/data:/opt/spark-data
+    ports:
+      - 8888:8888
+      - 4040-4042:4040-4042
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_LOCAL_IP=pyspark
+      - SPARK_WORKLOAD=submit
+      - SPARK_LOCAL_HOSTNAME=pyspark
+    depends_on:
+        - spark-master  
+    networks:
+        - services
+
+  # postgres-server:
+  #   container_name: ${CONTAINER_NAME:-postgres-server}
+  #   hostname: ${CONTAINER_NAME:-postgres-server}
+  #   image: postgres:${PG_VERSION:-13-alpine}
+  #   volumes:
+  #     - ./${PG_DATA_FOLDER:-data/postgres/mta_data}:/var/lib/postgresql/data
+  #     - ./data/postgres:/data
+  #   environment:
+  #     - POSTGRES_PASSWORD=${DB_PASS:-ut123}
+  #     - POSTGRES_USER=${DB_USER:-ut}
+  #     - POSTGRES_DB=${DB_NAME:-mta_data}
+  #   networks:
+  #     - services
+  #   ports:
+  #     - ${PORT:-5432}:5432
+  
+  zookeeper:
+    image: confluentinc/cp-zookeeper:${CP_VERSION}
+    hostname: kafka-zookeeper
+    container_name: kafka-zookeeper
+    ports:
+      - "2182:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - services
+    restart: always
+
+  broker:
+    image: confluentinc/cp-kafka:${CP_VERSION}
+    hostname: kafka-broker
+    container_name: kafka-broker
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9101:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'kafka-zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      # KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+    networks:
+      - services
+    restart: always
+
+  # schema-registry:
+  #   image: confluentinc/cp-schema-registry:${CP_VERSION}
+  #   hostname: schema-registry
+  #   container_name: schema-registry
+  #   depends_on:
+  #     - broker
+  #   ports:
+  #     - "9081:8081"
+  #   environment:
+  #     SCHEMA_REGISTRY_HOST_NAME: schema-registry
+  #     SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka-broker:29092'
+  #     SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:9081
+  #   networks:
+  #     - services
+  #   restart: always
+
+  # rest-proxy:
+  #   image: confluentinc/cp-kafka-rest:${CP_VERSION}
+  #   hostname: rest-proxy
+  #   container_name: rest-proxy
+  #   depends_on:
+  #     - broker
+  #     - schema-registry
+  #   ports:
+  #     - 9082:8082
+  #   hostname: rest-proxy
+  #   container_name: rest-proxy
+  #   environment:
+  #     KAFKA_REST_HOST_NAME: rest-proxy
+  #     KAFKA_REST_BOOTSTRAP_SERVERS: 'kafka-broker:29092'
+  #     KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
+  #     KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:9081'
+  #   networks:
+  #     - services
+  #   restart: always
+
+  kafkaHQ:
+    image: tchiotludo/akhq
+    container_name: kafkaHQ
+    hostname: kafkaHQ
+    depends_on:
+      - broker
+      - schema-registry
+    ports :
+      - 9080:8080
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            docker-kafka-server:
+              properties:
+                bootstrap.servers: "kafka-broker:29092"
+       #      schema-registry:
+       #         url: "http://schema-registry:9081"  
+       # connect:
+       #   - name: "connect"
+       #     url: "http://connect:8083"
+    networks:
+      - services
+    restart: always
+
+networks: 
+  services:
+    name: ${APP_NAME}_network
+volumes:
+  dfs_data: {}
