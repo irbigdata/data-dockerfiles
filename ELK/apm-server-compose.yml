@@ -15,10 +15,11 @@ services:
     ports:
       - '8200:8200'
     networks:
-      - elk
+      - services
     # depends_on:
     #   - elasticsearch
 
-networks:
-  elk:
-    driver: bridge
+
+networks: 
+  services:
+    name: ${APP_NAME:-irbigdata}_network

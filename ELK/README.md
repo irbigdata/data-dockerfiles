@@ -1,6 +1,6 @@
 # Elastic stack (ELK) on Docker
 
-[![Elastic Stack version](https://img.shields.io/badge/Elastic%20Stack-7.12.1-00bfb3?style=flat&logo=elastic-stack)](https://www.elastic.co/blog/category/releases)
+[![Elastic Stack version](https://img.shields.io/badge/Elastic%20Stack-7.16.2-00bfb3?style=flat&logo=elastic-stack)](https://www.elastic.co/blog/category/releases)
 [![Build Status](https://github.com/deviantony/docker-elk/workflows/CI/badge.svg?branch=main)](https://github.com/deviantony/docker-elk/actions?query=workflow%3ACI+branch%3Amain)
 [![Join the chat at https://gitter.im/deviantony/docker-elk](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/deviantony/docker-elk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -8,6 +8,8 @@ Run the latest version of the [Elastic stack][elk-stack] with Docker and Docker 
 
 It gives you the ability to analyze any data set by using the searching/aggregation capabilities of Elasticsearch and
 the visualization power of Kibana.
+
+![Animated demo](https://user-images.githubusercontent.com/3299086/140641708-cea70d17-cc04-459f-89d9-3fcb5c58bc35.gif)
 
 *:information_source: The Docker images backing this stack include [X-Pack][xpack] with [paid features][paid-features]
 enabled by default (see [How to disable paid features](#how-to-disable-paid-features) to disable them). **The [trial
@@ -42,8 +44,7 @@ own_. [sherifabdlnaby/elastdocker][elastdocker] is one example among others of p
 
 1. [Requirements](#requirements)
    * [Host setup](#host-setup)
-   * [SELinux](#selinux)
-   * [Docker for Desktop](#docker-for-desktop)
+   * [Docker Desktop](#docker-desktop)
      * [Windows](#windows)
      * [macOS](#macos)
 1. [Usage](#usage)
@@ -95,27 +96,18 @@ By default, the stack exposes the following ports:
 Elastic stack in development environments. For production setups, we recommend users to set up their host according to
 the instructions from the Elasticsearch documentation: [Important System Configuration][es-sys-config].**
 
-### SELinux
-
-On distributions which have SELinux enabled out-of-the-box you will need to either re-context the files or set SELinux
-into Permissive mode in order for docker-elk to start properly. For example on Redhat and CentOS, the following will
-apply the proper context:
-
-```console
-$ chcon -R system_u:object_r:admin_home_t:s0 docker-elk/
-```
-
-### Docker for Desktop
+### Docker Desktop
 
 #### Windows
 
-Ensure the [Shared Drives][win-shareddrives] feature is enabled for the `C:` drive.
+If you are using the legacy Hyper-V mode of _Docker Desktop for Windows_, ensure [File Sharing][win-filesharing] is
+enabled for the `C:` drive.
 
 #### macOS
 
-The default Docker for Mac configuration allows mounting files from `/Users/`, `/Volumes/`, `/private/`, and `/tmp`
-exclusively. Make sure the repository is cloned in one of those locations or follow the instructions from the
-[documentation][mac-mounts] to add more locations.
+The default configuration of _Docker Desktop for Mac_ allows mounting files from `/Users/`, `/Volume/`, `/private/`,
+`/tmp` and `/var/folders` exclusively. Make sure the repository is cloned in one of those locations or follow the
+instructions from the [documentation][mac-filesharing] to add more locations.
 
 ## Usage
 
@@ -207,8 +199,8 @@ users][builtin-users] instead for increased security.
     $ docker-compose restart kibana logstash
     ```
 
-    *:information_source: Learn more about the security of the Elastic stack at [Tutorial: Getting started with
-    security][sec-tutorial].*
+    *:information_source: Learn more about the security of the Elastic stack at [Secure the Elastic
+    Stack][sec-cluster].*
 
 ### Injecting data
 
@@ -256,7 +248,7 @@ Create an index pattern via the Kibana API:
 ```console
 $ curl -XPOST -D- 'http://localhost:5601/api/saved_objects/index-pattern' \
     -H 'Content-Type: application/json' \
-    -H 'kbn-version: 7.12.1' \
+    -H 'kbn-version: 7.16.2' \
     -u elastic:<your generated elastic password> \
     -d '{"attributes":{"title":"logstash-*","timeFieldName":"@timestamp"}}'
 ```
@@ -307,8 +299,11 @@ containers: [Configuring Logstash for Docker][ls-docker].
 
 ### How to disable paid features
 
-Switch the value of Elasticsearch's `xpack.license.self_generated.type` option from `trial` to `basic` (see [License
+Switch the value of Elasticsearch's `xpack.license.self_generated.type` setting from `trial` to `basic` (see [License
 settings][trial-license]).
+
+You can also cancel an ongoing trial before its expiry date — and thus revert to a basic license — either from the
+[License Management][license-mngmt] panel of Kibana, or using Elasticsearch's [Licensing APIs][license-apis].
 
 ### How to scale out the Elasticsearch cluster
 
@@ -422,6 +417,8 @@ instead of `elasticsearch`.*
 [xpack]: https://www.elastic.co/what-is/open-x-pack
 [paid-features]: https://www.elastic.co/subscriptions
 [trial-license]: https://www.elastic.co/guide/en/elasticsearch/reference/current/license-settings.html
+[license-mngmt]: https://www.elastic.co/guide/en/kibana/current/managing-licenses.html
+[license-apis]: https://www.elastic.co/guide/en/elasticsearch/reference/current/licensing-apis.html
 
 [elastdocker]: https://github.com/sherifabdlnaby/elastdocker
 
@@ -430,12 +427,12 @@ instead of `elasticsearch`.*
 [booststap-checks]: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
 [es-sys-config]: https://www.elastic.co/guide/en/elasticsearch/reference/current/system-config.html
 
-[win-shareddrives]: https://docs.docker.com/docker-for-windows/#shared-drives
-[mac-mounts]: https://docs.docker.com/docker-for-mac/osxfs/
+[win-filesharing]: https://docs.docker.com/desktop/windows/#file-sharing
+[mac-filesharing]: https://docs.docker.com/desktop/mac/#file-sharing
 
 [builtin-users]: https://www.elastic.co/guide/en/elasticsearch/reference/current/built-in-users.html
 [ls-security]: https://www.elastic.co/guide/en/logstash/current/ls-security.html
-[sec-tutorial]: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-getting-started.html
+[sec-cluster]: https://www.elastic.co/guide/en/elasticsearch/reference/current/secure-cluster.html
 
 [connect-kibana]: https://www.elastic.co/guide/en/kibana/current/connect-to-elasticsearch.html
 [index-pattern]: https://www.elastic.co/guide/en/kibana/current/index-patterns.html
