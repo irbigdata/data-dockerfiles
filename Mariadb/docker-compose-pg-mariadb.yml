@@ -13,4 +13,10 @@ services:
       MYSQL_DATABASE: nikamooz
     volumes:
       - ./data/mysql:/var/lib/mysql
+    networks:
+      - services
   
+  
+networks: 
+  services:
+    name: ${APP_NAME:-irbigdata}_network

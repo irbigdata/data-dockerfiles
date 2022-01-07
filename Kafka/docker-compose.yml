@@ -2,7 +2,7 @@
 version: '2'
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:${CP_VERSION}
+    image: confluentinc/cp-zookeeper:${CP_VERSION:-latest}
     hostname: kafka-zookeeper
     container_name: kafka-zookeeper
     ports:
@@ -15,7 +15,7 @@ services:
     restart: always
 
   broker:
-    image: confluentinc/cp-kafka:${CP_VERSION}
+    image: confluentinc/cp-kafka:${CP_VERSION:-latest}
     hostname: kafka-broker
     container_name: kafka-broker
     depends_on:
@@ -37,7 +37,7 @@ services:
       KAFKA_JMX_PORT: 9101
       KAFKA_JMX_HOSTNAME: localhost
       KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka-broker:29092
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
       CONFLUENT_METRICS_ENABLE: 'true'
       CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
@@ -46,7 +46,7 @@ services:
     restart: always
 
   schema-registry:
-    image: confluentinc/cp-schema-registry:${CP_VERSION}
+    image: confluentinc/cp-schema-registry:${CP_VERSION:-latest}
     hostname: schema-registry
     container_name: schema-registry
     depends_on:
@@ -62,7 +62,7 @@ services:
     restart: always
 
   # connect:
-  #   image: cnfldemos/cp-server-connect-datagen:0.5.0-${CP_VERSION}
+  #   image: cnfldemos/cp-server-connect-datagen
   #   hostname: connect
   #   container_name: connect
   #   depends_on:
@@ -93,7 +93,7 @@ services:
   #     CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
 
   # control-center:
-  #   image: confluentinc/cp-enterprise-control-center:${CP_VERSION}
+  #   image: confluentinc/cp-enterprise-control-center:${CP_VERSION:-latest}
   #   hostname: control-center
   #   container_name: control-center
   #   depends_on:
@@ -116,7 +116,7 @@ services:
   #     PORT: 9021
 
   # ksqldb-server:
-  #   image: confluentinc/cp-ksqldb-server:${CP_VERSION}
+  #   image: confluentinc/cp-ksqldb-server:${CP_VERSION:-latest}
   #   hostname: ksqldb-server
   #   container_name: ksqldb-server
   #   depends_on:
@@ -139,7 +139,7 @@ services:
   #     KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: 'true'
 
   # ksqldb-cli:
-  #   image: confluentinc/cp-ksqldb-cli:${CP_VERSION}
+  #   image: confluentinc/cp-ksqldb-cli:${CP_VERSION:-latest}
   #   container_name: ksqldb-cli
   #   depends_on:
   #     - broker
@@ -149,7 +149,7 @@ services:
   #   tty: true
 
   # ksql-datagen:
-  #   image: confluentinc/ksqldb-examples:${CP_VERSION}
+  #   image: confluentinc/ksqldb-examples:${CP_VERSION:-latest}
   #   hostname: ksql-datagen
   #   container_name: ksql-datagen
   #   depends_on:
@@ -171,7 +171,7 @@ services:
   #     STREAMS_SCHEMA_REGISTRY_PORT: 8081
 
   rest-proxy:
-    image: confluentinc/cp-kafka-rest:${CP_VERSION}
+    image: confluentinc/cp-kafka-rest:${CP_VERSION:-latest}
     hostname: rest-proxy
     container_name: rest-proxy
     depends_on:
@@ -179,8 +179,6 @@ services:
       - schema-registry
     ports:
       - 8082:8082
-    hostname: rest-proxy
-    container_name: rest-proxy
     environment:
       KAFKA_REST_HOST_NAME: rest-proxy
       KAFKA_REST_BOOTSTRAP_SERVERS: 'kafka-broker:29092'
@@ -217,5 +215,5 @@ services:
 
 networks: 
   services:
-    name: ${APP_NAME}_network
+    name: ${APP_NAME:-irbigdata}_network
 

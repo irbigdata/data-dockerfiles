@@ -39,4 +39,4 @@ services:
   
 networks: 
   services:
-    name: ${APP_NAME}_network
+    name: ${APP_NAME:-irbigdata}_network

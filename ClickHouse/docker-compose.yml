@@ -32,9 +32,8 @@ services:
       - SYS_PTRACE
     security_opt:
       - label:disable
-  
-    # networks:
-    #     - ch_ntw
+    networks:
+        - services
 
   ch_client:
     image: yandex/clickhouse-client
@@ -42,12 +41,10 @@ services:
       - /bin/sleep
     command:
       - infinity
-    # networks:
-    #     - ch_ntw
+    networks:
+        - services
 
-# networks:
-#   ch_ntw:
-#     driver: bridge
-#     ipam:
-#       config:
-#         - subnet: 10.222.1.0/24
+
+networks: 
+  services:
+    name: ${APP_NAME:-irbigdata}_network

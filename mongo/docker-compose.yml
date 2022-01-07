@@ -2,7 +2,6 @@
 version: '3.1'
 
 services:
-
   mongo:
     image : mongo
     ports:
@@ -15,15 +14,22 @@ services:
     volumes:
       - ./db:/data/db
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - services
 
   mongo-express:
     image: mongo-express
     restart: always
     ports:
       - 8081:8081
+    networks:
+      - services
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: 1234
 
+networks: 
+  services:
+    name: ${APP_NAME:-irbigdata}_network
       
 
