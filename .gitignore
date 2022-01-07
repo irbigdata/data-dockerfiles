@@ -1,8 +1,5 @@
 *.tar.gz
-dags_saba/
 db_data/
-.env
-db_sabatamin/
 .ipynb_checkpoints/
 .Trash-0/
 .Trash-1/
@@ -12,7 +9,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 dags-old/
-
+data/
 # C extensions
 *.so
 
