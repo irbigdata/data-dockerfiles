@@ -3,29 +3,51 @@ services:
   redis:
     image: redis:alpine
     container_name: redis
-    command: redis-server --requirepass odiF2t11
-    # healthcheck:
-    #   test: ["CMD-SHELL", "pg_isready -U postgres"]
-    #   interval: 30s
-    #   timeout: 30s
-    #   retries: 3
-    # logging:
-    #   driver: syslog
-    #   options:
-    #     tag: "{{.DaemonName}}(image={{.ImageName}};name={{.Name}};id={{.ID}})"
-    networks:
-      - services
+    # command: redis-server --requirepass redis123
+    command: redis-server 
     restart: on-failure
     volumes:
-       # - ${PWD}/postgres/data:/var/lib/postgresql/data
-      - $PWD/data:/var/lib/redis
-      # - $PWD/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data:/var/lib/redis
+      # - ./redis.conf:/usr/local/etc/redis/redis.conf
     ports:
-      - "6379:6379"
-
+      - ${REDIS_PORT:-6379}:6379
     environment:
-      - REDIS_REPLICATION_MODE=master   
+      - REDIS_REPLICATION_MODE=master 
+    networks:
+      - services
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+      REDIS_HOSTS: redis
+      REDIS_HOST: redis
+      REDIS_PORT: redis:6379
+      # REDIS_PASSWORD: ${REDIS_PASSWORD}
+      HTTP_USER: root
+      HTTP_PASSWORD: root
+    ports:
+      - 8010:8081
+    networks:
+      - services
+
+  # nf-explorer:
+  #   image: gesellix/nf-data-explorer
+  #   hostname: nf-explorer
+  #   container_name: nf-explorer
+  #   depends_on:
+  #     - redis
+  #   ports:
+  #     - '8020:80'
+  #   command: yarn start
+  #   networks:
+  #     - services
+  #   environment:
+  #     - CASSANDRA_HOST=cassandra
+  #     - REDIS_HOST=redis
+  #   volumes:
+  #     - ./data:/apps/nf-data-explorer/data
 
 networks: 
   services:
-    name: ${APP_NAME}_network
+    name: ${APP_NAME:-irbigdata}_network
