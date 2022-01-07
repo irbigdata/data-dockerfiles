@@ -10,6 +10,7 @@ __pycache__/
 *$py.class
 dags-old/
 data/
+db/
 # C extensions
 *.so
 
