@@ -1,0 +1,73 @@
+version: '3.9'
+
+volumes:
+  grafana_data: {}
+  prometheus_data: {}
+
+networks: 
+  services:
+    name: ${APP_NAME:-irbigdata}_network
+
+services: 
+  grafana: 
+    # Grafana Open Source Version
+    container_name: grafana
+    image: grafana/grafana-oss:${GRAFANA_VERSION:-main}  
+    ports:
+      - '3000:3000'
+    environment:
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_USERS_ALLOW_ORG_CREATE=false
+      - GF_USERS_AUTO_ASSIGN_ORG_ROLE=Read Only Editor 
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel,marcusolsson-gantt-panel,grafana-worldmap-panel,briangann-gauge-panel,natel-plotly-panel
+
+    volumes:
+      # - ./grafana/logs:/var/log/grafana
+      # - ./grafana/provisioning:/etc/grafana/provisioning
+      # - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+      # - ./grafana/plugins:/var/lib/grafana/plugins
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - services
+
+  prometheus:
+    image: prom/prometheus:${Prom_VERSION:-main}
+    container_name: prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    ports:
+      - 9090:9090
+    networks:
+      - services
+
+  loki:
+    image: grafana/loki:${GRAFANA_VERSION:-main}
+    container_name: loki
+    ports:
+      - 3100:3100
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - services
+
+  promtail:
+    image: grafana/promtail:${GRAFANA_VERSION:-main}
+    container_name: promtail
+    volumes:
+      - app_data:/var/log
+    networks:
+      - services
+
+  tempo:
+    image: grafana/tempo:latest
+    command: ["--target=all", "--storage.trace.backend=local", "--storage.trace.local.path=/var/tempo", "--auth.enabled=false"]
+    ports:
+      - 8085:80
+    networks:
+      - services
