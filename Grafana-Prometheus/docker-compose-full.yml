@@ -3,6 +3,7 @@ version: '3.9'
 volumes:
   grafana_data: {}
   prometheus_data: {}
+  app_data: {}
 
 networks: 
   services:
@@ -60,14 +61,48 @@ services:
     image: grafana/promtail:${GRAFANA_VERSION:-main}
     container_name: promtail
     volumes:
+      - ./promtail/docker-config.yml:/etc/promtail/docker-config.yml
       - app_data:/var/log
+    command: -config.file=/etc/promtail/docker-config.yml
+    ports:
+      - 9080:9080
     networks:
       - services
 
   tempo:
     image: grafana/tempo:latest
+    container_name: tempo
     command: ["--target=all", "--storage.trace.backend=local", "--storage.trace.local.path=/var/tempo", "--auth.enabled=false"]
+    volumes:
+      - ./tempo/tempo-local.yaml:/etc/tempo-local.yaml
     ports:
-      - 8085:80
+      - 3200:80
     networks:
       - services
+
+  alertmanager:
+    image: prom/alertmanager
+    container_name: alertmanager
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+    restart: unless-stopped
+    expose:
+      - 9093
+    networks:
+      - services
+    labels:
+      org.label-schema.group: "monitoring"
+
+  pushgateway:
+    image: prom/pushgateway
+    container_name: pushgateway
+    restart: unless-stopped
+    expose:
+      - 9091
+    networks:
+      - services
+    labels:
+      org.label-schema.group: "monitoring"
