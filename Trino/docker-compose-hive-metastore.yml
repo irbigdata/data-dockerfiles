@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  trino:
+    image: trinodb/trino:${TRINO_VERSION:-latest}
+    ports:
+      - "8080:8080"
+    container_name: "trino"
+    volumes:
+      - ./etc:/etc/trino
+      - ./data/trino:/home/trino/data
+    networks:
+      - services
+    # restart: always
+
+  mariadb:
+    image: 'mariadb:latest'
+    hostname: mariadb
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_DATABASE: metastore_db
+    networks:
+      - services
+
+  hive-metastore:
+    image: 'bitsondatadev/hive-metastore:latest'
+    hostname: hive-metastore
+    ports:
+      - '9083:9083' # Metastore Thrift
+    volumes:
+      - ./conf/metastore-site.xml:/opt/apache-hive-metastore-3.0.0-bin/conf/metastore-site.xml:ro
+    environment:
+      METASTORE_DB_HOSTNAME: mariadb
+    depends_on:
+      - mariadb
+    networks:
+      - services 
+  minio:
+    image: 'minio/minio:latest'
+    hostname: minio
+    container_name: minio
+    ports:
+      - '9000:9000'
+    volumes:
+      - ./data/minio-storage:/data
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server /data
+    networks:
+      - services
+networks: 
+  services:
+    name: ${APP_NAME:-irbigdata}_network
+  

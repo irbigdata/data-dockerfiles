@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  coordinator:
+    image: trinodb/trino:${TRINO_VERSION:-latest}
+    ports:
+      - "8080:8080"
+    container_name: "coordinator"
+    volumes:
+      - ./etc:/etc/trino
+      - ./data:/home/trino/data
+    networks:
+      - services
+    # restart: always
+
+  worker0:
+    image: trinodb/trino:${TRINO_VERSION:-latest}
+    container_name: "worker0"
+    ports:
+      - "8081:8081"
+    depends_on:
+      - coordinator
+    volumes:
+      - ./etc-workers:/etc/trino
+      - ./data:/home/trino/data
+    networks:
+      - services
+  
+  worker1:
+    image: trinodb/trino:${TRINO_VERSION:-latest}
+    container_name: "worker1"
+    depends_on:
+      - coordinator
+    ports:
+      - "8082:8081"
+    volumes:
+      - ./etc-workers:/etc/trino
+      - ./data:/home/trino/data
+    networks:
+      - services
+
+
+networks: 
+  services:
+    name: ${APP_NAME:-irbigdata}_network
+  

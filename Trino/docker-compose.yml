@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  trino:
+    image: trinodb/trino:${TRINO_VERSION:-latest}
+    ports:
+      - "8080:8080"
+    container_name: "trino"
+    volumes:
+      - ./etc:/etc/trino
+      - ./data:/home/trino/data
+    networks:
+      - services
+    # restart: always
+
+networks: 
+  services:
+    name: ${APP_NAME:-irbigdata}_network
+  
