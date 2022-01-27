@@ -13,6 +13,10 @@ services:
     networks:
       - services
     restart: always
+    # chown -R 1000:1000 ./zoo
+    volumes: 
+      - ./zoo/data:/var/lib/zookeeper/data
+      - ./zoo/log:/var/lib/zookeeper/log
 
   broker:
     image: confluentinc/cp-kafka:${CP_VERSION:-latest}
@@ -27,6 +31,11 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'kafka-zookeeper:2181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      # if you want to use this image in your local machine :
+      #   - add this line to your /etc/hosts file -> 127.0.0.1 kafka-broker  
+      # if you want to use this image in a remote server you must do the followings : 
+      # 1- change localhost in the following line to the valid IP address of your remote server.
+      # 2- add this line to your /etc/hosts file in the remote server -> 127.0.0.1 kafka-broker  
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
@@ -44,6 +53,9 @@ services:
     networks:
       - services
     restart: always
+    # chown -R 1000:1000 ./broker
+    volumes: 
+      - ./broker/data:/var/lib/kafka/data
 
   schema-registry:
     image: confluentinc/cp-schema-registry:${CP_VERSION:-latest}
