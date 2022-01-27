@@ -6,7 +6,23 @@ services:
     hostname: cassandra
     container_name: cassandra
     ports:
-      - '9042:9042'
+      - "7199:7199" # JMX
+      - "7000:7000" # cluster communication
+      - "7001:7001" # cluster communication (SSL)
+      - "9042:9042" # native protocol clients
+      - "9160:9160" # thrift clients
+    # chown -R 1000:1000 ./data
+    # chown -R 1000:1000 ./config
+    # chown -R 1000:1000 ./log
+
+    volumes:
+      - ./config/cassandra.yaml:/etc/cassandra/cassandra.yaml  # config files
+      - ./config/cassandra-jaas.config:/etc/cassandra/cassandra-jaas.config  # config files
+      - ./config/cassandra-rackdc.properties:/etc/cassandra/cassandra-rackdc.properties  # config files
+      - ./config/cassandra-topology.properties:/etc/cassandra/cassandra-topology.properties  # config files
+      - ./config/commitlog_archiving.properties:/etc/cassandra/commitlog_archiving.properties  # config files
+      - ./data/cassandra:/var/lib/cassandra  # persisted data
+      - ./log/cassandra:/var/log/cassandra  # logging files
     healthcheck:
       test: ['CMD-SHELL', "nodetool status | grep '^UN' || exit 1"]
       interval: 60s
@@ -17,23 +33,27 @@ services:
       - services
     restart: on-failure
 
-  # nfexplorer:
-  #   image: gesellix/nf-data-explorer
-  #   hostname: nfexplorer
-  #   container_name: nfexplorer
-  #   depends_on:
-  #     - cassandra
-  #   ports:
-  #     - '8030:80'
-  #   command: yarn start
-  #   networks:
-  #     - services
-  #   environment:
-  #     - CASSANDRA_HOST=cassandra
-  #     - REDIS_HOST=redis
-  #   volumes:
-  #     - ./data:/apps/nf-data-explorer/data
+  nfexplorer:
+    image: gesellix/nf-data-explorer
+    hostname: nfexplorer
+    container_name: nfexplorer
+    depends_on:
+      - cassandra
+    ports:
+      - '8090:80'
+    command: yarn start
+    networks:
+      - services
+    environment:
+      - CASSANDRA_HOST=cassandra
+      - REDIS_HOST=redis
+    volumes:
+      - ./data/nf-explorer:/apps/nf-data-explorer/data
+    restart: on-failure
 
 networks: 
   services:
     name: ${APP_NAME:-irbigdata}_network
+
+## INTERACTIVE CQLSH
+# docker run --rm -it  nuvo/docker-cqlsh:0.1.0 cqlsh Server-IP 9042 --cqlversion='3.4.5' 
