@@ -1,5 +1,8 @@
 version: '3'
 
+volumes:
+  elasticsearch: 
+
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.16.3
@@ -13,7 +16,18 @@ services:
         hard: -1
     ports:
       - "9200:9200"
+    networks:
+      - services
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,z
+      - elasticsearch:/usr/share/elasticsearch/data:z
   kibana:
     image: docker.elastic.co/kibana/kibana:7.16.3
     ports:
       - "5601:5601"
+    networks:
+      - services
+
+networks: 
+  services:
+    name: ${APP_NAME:-irbigdata}_network
