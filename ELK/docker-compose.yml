@@ -1,14 +1,21 @@
 version: '3'
 
+
+# Run this command in CMD :  `sysctl -w vm.max_map_count=262144`
+
 volumes:
   elasticsearch: 
 
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.16.3
+    hostname: elasticsearch
+    container_name: elasticsearch
     environment:
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
+      - discovery.seed_hosts=elasticsearch
+      - cluster.initial_master_nodes=elasticsearch
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
       memlock:
