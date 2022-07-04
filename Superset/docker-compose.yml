@@ -31,6 +31,8 @@ services:
     restart: unless-stopped
     volumes:
       - redis:/data
+    networks:
+      - services
 
   db:
     env_file: docker/.env-non-dev
@@ -39,6 +41,8 @@ services:
     restart: unless-stopped
     volumes:
       - db_home:/var/lib/postgresql/data
+    networks:
+      - services
 
   superset:
     env_file: docker/.env-non-dev
@@ -51,6 +55,8 @@ services:
       - 8088:8088
     depends_on: *superset-depends-on
     volumes: *superset-volumes
+    networks:
+      - services
 
   superset-init:
     image: *superset-image
@@ -60,6 +66,8 @@ services:
     depends_on: *superset-depends-on
     user: "root"
     volumes: *superset-volumes
+    networks:
+      - services
 
   superset-worker:
     image: *superset-image
@@ -70,6 +78,8 @@ services:
     depends_on: *superset-depends-on
     user: "root"
     volumes: *superset-volumes
+    networks:
+      - services
 
   superset-worker-beat:
     image: *superset-image
@@ -80,6 +90,8 @@ services:
     depends_on: *superset-depends-on
     user: "root"
     volumes: *superset-volumes
+    networks:
+      - services
 
 volumes:
   superset_home:
@@ -88,3 +100,7 @@ volumes:
     external: false
   redis:
     external: false
+
+networks: 
+  services:
+    name: ${APP_NAME:-irbigdata}_network
