@@ -32,7 +32,7 @@ services:
   postgres_druid:
     container_name: postgres_druid
     hostname: postgres_druid
-    image: postgres:${PG_VERSION}
+    image: postgres:${PG_VERSION:-13-alpine}
     volumes:
       - metadata_data:/var/lib/postgresql/data
     environment:
