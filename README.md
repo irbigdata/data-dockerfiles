@@ -17,3 +17,8 @@ How to use it ?
   
   
 
+
+
+### Infrastructure model
+
+![Infrastructure model](.infragenie/infrastructure_model.png)
