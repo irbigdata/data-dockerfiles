@@ -1,0 +1,104 @@
+version: '3'
+
+services:
+  zookeeper:
+    image: docker.io/bitnami/zookeeper:3.8
+    container_name: zookeeper
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    volumes:
+      - ./data/zookeeper:/bitnami
+      #  sudo chown 1001:1001 -R ./data/zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    networks:
+      - services
+    # restart: always
+    restart: on-failure:10
+
+  kafka:
+    image: 'bitnami/kafka:3.2'
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - '9092:9092'
+      - '29092:29092'
+    volumes:
+      - ./data/kafka:/bitnami/kafka
+      - ./logs:/opt/bitnami/kafka/logs
+      #  sudo chown 1001:1001 -R ./logs/
+      #  sudo chown 1001:1001 -R ./data/kafka
+    environment:
+      #- BITNAMI_DEBUG=yes
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      #- KAFKA_KRAFT_CLUSTER_ID='Ve9Q8hB2QNmmAFOZYLWynw'
+      - KAFKA_CFG_NUM_PARTITIONS=2
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_ENABLE_KRAFT=no
+      #- KAFKA_CFG_PROCESS_ROLES=broker,controller
+      #- KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=EXTERNAL://0.0.0.0:9092,INTERNAL://0.0.0.0:29092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      #- KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@127.0.0.1:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://ec2-35-181-51-15.eu-west-3.compute.amazonaws.com:29092,EXTERNAL://35.181.51.15:9092
+      #- KAFKA_CFG_ADVERTISED_LISTENERS=EXTERNAL://35.181.51.15:9092
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+    networks:
+      - services
+    restart: on-failure:10
+
+  schema-registry:
+    image: 'bitnami/schema-registry:7.2'
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8081"
+    environment:
+      - SCHEMA_REGISTRY_HOST_NAME='schema-registry'
+      - SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081
+      - SCHEMA_REGISTRY_KAFKA_BROKERS=PLAINTEXT://kafka:9092
+    networks:
+      - services
+    # restart: always
+    restart: on-failure:10
+
+  kafkaHQ:
+    image: tchiotludo/akhq
+    container_name: kafkaHQ
+    hostname: kafkaHQ
+    depends_on:
+      - kafka
+      - schema-registry
+    ports :
+      - 9100:8080
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            docker-kafka-server:
+              properties:
+                bootstrap.servers: "kafka:9092"
+              schema-registry:
+                url: "http://schema-registry:8081"
+       # connect:
+       #   - name: "connect"
+       #     url: "http://connect:8083"
+    networks:
+      - services
+    restart: on-failure:10
+
+networks:
+  services:
+    name: ${APP_NAME:-firebull}_network
+
+#volumes:
+#  data_kafka:
+#    driver: local
