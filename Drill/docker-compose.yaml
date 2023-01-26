@@ -3,7 +3,7 @@ version: '3.4'
 services:
   drill:
     env_file:
-      - .env
+      - apache-drill.env
     image: apache/drill:latest
     ports:
       - '8047:8047'
