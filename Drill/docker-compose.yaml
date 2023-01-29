@@ -1,0 +1,17 @@
+version: '3.4'
+
+services:
+  drill:
+    env_file:
+      - apache-drill.env
+    image: apache/drill:latest
+    ports:
+      - '8047:8047'
+      - '31010:31010'
+    volumes:
+      # If needed, you can override the default core-site settings
+      #- ./conf/core-site.xml:/opt/drill/conf/core-site.xml
+      # If needed, you can register a storage plugin
+      #- ./conf/storage-plugins-override.conf:/opt/drill/conf/storage-plugins-override.conf
+    stdin_open: true
+    tty: true
