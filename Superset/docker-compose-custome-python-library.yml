@@ -107,3 +107,4 @@ volumes:
 networks: 
   services:
     name: ${APP_NAME:-irbigdata}_network
+    
