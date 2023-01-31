@@ -14,7 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# x-superset-image: &superset-image apache/superset:${TAG:-latest-dev}
+x-superset-image: 
+  &superset-image 
+  build: .
 
 x-superset-depends-on: &superset-depends-on
   - db
@@ -46,9 +48,8 @@ services:
       - services
 
   superset:
+    <<: *superset-image
     env_file: docker/.env-non-dev
-    # image: *superset-image
-    build: .
     container_name: superset_app
     command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
     user: "root"
@@ -61,7 +62,7 @@ services:
       - services
 
   superset-init:
-    image: *superset-image
+    <<: *superset-image
     container_name: superset_init
     command: ["/app/docker/docker-init.sh"]
     env_file: docker/.env-non-dev
@@ -72,7 +73,7 @@ services:
       - services
 
   superset-worker:
-    image: *superset-image
+    <<: *superset-image
     container_name: superset_worker
     command: ["/app/docker/docker-bootstrap.sh", "worker"]
     env_file: docker/.env-non-dev
@@ -84,7 +85,7 @@ services:
       - services
 
   superset-worker-beat:
-    image: *superset-image
+    <<: *superset-image
     container_name: superset_worker_beat
     command: ["/app/docker/docker-bootstrap.sh", "beat"]
     env_file: docker/.env-non-dev
