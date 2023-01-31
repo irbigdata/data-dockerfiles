@@ -1,3 +1,13 @@
+### Note :
+
+please run this command to assign the execution  permission to the `.sh` files in docker folder :
+
+```bash
+chmod +x ./docker/*.sh
+```
+
+
+
 ### Some Practical Sample Apps
 
 - [Building a Data Lakehouse for Analyzing Elon Musk Tweets using MinIO, Apache Airflow, Apache Drill and Apache Superset]([mikekenneth/twitter_data-lakehouse_minio_drill_superset: Building a Data Lakehouse for Analyzing Elon Musk Tweets using MinIO, Apache Airflow, Apache Drill and Apache Superset (github.com)](https://github.com/mikekenneth/twitter_data-lakehouse_minio_drill_superset))
