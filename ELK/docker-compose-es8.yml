@@ -2,7 +2,7 @@ version: '3'
 services:
   elasticsearch:
     restart: always
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.3.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.1
     container_name: elasticsearch
     environment:
       - network.host=0.0.0.0
@@ -15,10 +15,10 @@ services:
       - 9200:9200
       - 9300:9300
     networks:
-      - esnet
+      - services
   kibana:
     restart: always
-    image: docker.elastic.co/kibana/kibana:8.3.1
+    image: docker.elastic.co/kibana/kibana:8.7.1
     container_name: kibana
     environment:
      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
@@ -26,9 +26,10 @@ services:
     ports:
       - "5601:5601"
     networks:
-      - esnet
+      - services
     depends_on:
       - elasticsearch
 networks:
   esnet:
+    name: ${APP_NAME:-irbigdata}_network
     

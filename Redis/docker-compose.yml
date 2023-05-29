@@ -27,7 +27,7 @@ services:
       HTTP_USER: root
       HTTP_PASSWORD: root
     ports:
-      - 8010:8081
+      - 8020:8081
     networks:
       - services
 
