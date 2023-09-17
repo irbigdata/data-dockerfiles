@@ -3,7 +3,7 @@ services:
   postgres:
     container_name: ${CONTAINER_NAME:-postgres}
     hostname: ${CONTAINER_NAME:-postgres}
-    image: postgres:${PG_VERSION:-15-alpine}
+    image: postgres:${PG_VERSION:-16-alpine}
     volumes:
       - ./${DATA_FOLDER:-db_data}:/var/lib/postgresql/data
       # - ./dump:/data
@@ -18,8 +18,8 @@ services:
       - ${PORT:-5432}:5432
 
     restart: always
-volumes:
-  metadata_data: {}
+# volumes:
+#   metadata_data: {}
 
   # pgadmin:
   #   container_name: pgadmin4

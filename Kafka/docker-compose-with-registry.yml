@@ -48,6 +48,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_JMX_PORT: 9101
       KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka-broker:29092
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
       CONFLUENT_METRICS_ENABLE: 'true'
@@ -61,12 +62,50 @@ services:
     volumes: 
       - ./kafka_volume/broker/data:/var/lib/kafka/data:z
 
+  schema-registry:
+    image: confluentinc/cp-schema-registry:${CP_VERSION:-latest}
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - broker
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka-broker:29092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    networks:
+      - services
+    # restart: always
+    restart: on-failure:10
+
+
+  rest-proxy:
+    image: confluentinc/cp-kafka-rest:${CP_VERSION:-latest}
+    hostname: rest-proxy
+    container_name: rest-proxy
+    depends_on:
+      - broker
+      - schema-registry
+    ports:
+      - 8082:8082
+    environment:
+      KAFKA_REST_HOST_NAME: rest-proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: 'kafka-broker:29092'
+      KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
+      KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+    networks:
+      - services
+    restart: on-failure:10
+    # restart: always
+
   kafkaHQ:
     image: tchiotludo/akhq
     container_name: kafkaHQ
     hostname: kafkaHQ
     depends_on:
       - broker
+      - schema-registry
     ports :
       - 9100:8080
     environment:
@@ -76,7 +115,11 @@ services:
             docker-kafka-server:
               properties:
                 bootstrap.servers: "kafka-broker:29092"
-                
+              schema-registry:
+                url: "http://schema-registry:8081"  
+       # connect:
+       #   - name: "connect"
+       #     url: "http://connect:8083"
     networks:
       - services
     restart: on-failure:10
