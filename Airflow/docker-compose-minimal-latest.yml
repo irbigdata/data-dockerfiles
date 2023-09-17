@@ -1,0 +1,76 @@
+version: '3.4'
+
+x-common:
+  &common
+  build: .
+  image: apache/airflow:latest
+  user: "${AIRFLOW_UID}:0"
+  env_file: 
+    - .env
+  volumes:
+    - ./dags:/opt/airflow/dags
+    # - ./logs:/opt/airflow/logs
+    # - ./plugins:/opt/airflow/plugins
+    
+  networks:
+      - services
+
+services:
+  postgres:
+    image: postgres:13-alpine
+    container_name: postgres_airflow
+    # ports:
+      # - "5414:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    networks:
+      - services
+    env_file:
+      - .env
+
+  scheduler:
+    <<: *common
+    container_name: airflow-scheduler
+    command: scheduler
+    restart: on-failure
+    ports:
+      - "3006:8793"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  webserver:
+    <<: *common
+    container_name: airflow-webserver
+    restart: always
+    command: webserver
+    ports:
+      - "3005:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+  
+  airflow-init:
+    <<: *common
+    container_name: airflow-init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        mkdir -p /sources/logs /sources/dags /sources/plugins
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
+        exec /entrypoint airflow version
+networks:
+  services:
+    name: ${APP_NAME:-smartshop}_network
